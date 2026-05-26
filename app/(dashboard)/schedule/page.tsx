@@ -23,6 +23,10 @@ export default function SchedulePage() {
   const [records, setRecords] = useState<RecordRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // カレンダーは locale 依存の日付属性でハイドレーション不一致になるためマウント後に描画
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const dateLabel = date ? fmt(date) : "未選択";
 
@@ -65,12 +69,16 @@ export default function SchedulePage() {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <Panel className="w-full lg:w-auto lg:shrink-0">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="mx-auto"
-          />
+          {mounted ? (
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              className="mx-auto"
+            />
+          ) : (
+            <div className="mx-auto h-[300px] w-[252px]" />
+          )}
         </Panel>
 
         <div className="flex w-full flex-col gap-4">
