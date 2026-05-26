@@ -48,8 +48,17 @@ export default function CheckPage() {
 
   const set = async (
     patientId: string,
+    patientName: string,
     next: Exclude<RecordStatus, "pending">
   ) => {
+    const statusLabel = next === "taken" ? "服薬済" : "拒否";
+    if (
+      !window.confirm(
+        `${patientName} さんの服薬を「${statusLabel}」で記録しますか？`
+      )
+    ) {
+      return;
+    }
     setError(null);
     // 楽観更新
     setRecords((prev) => {
@@ -71,7 +80,6 @@ export default function CheckPage() {
     try {
       await upsertRecord(patientId, TODAY, timing, next);
       const { data: u } = await supabase.auth.getUser();
-      const statusLabel = next === "taken" ? "服薬済" : "拒否";
       await logAction(
         u.user?.email ?? "unknown",
         "medication_checked",
@@ -128,7 +136,7 @@ export default function CheckPage() {
                     <Checkbox
                       checked={checked}
                       onCheckedChange={(v) =>
-                        set(e.patientId, v ? "taken" : "refused")
+                        set(e.patientId, e.patientName, v ? "taken" : "refused")
                       }
                     />
                     <span className="min-w-0">
@@ -141,7 +149,7 @@ export default function CheckPage() {
                     </span>
                   </label>
                   <button
-                    onClick={() => set(e.patientId, "refused")}
+                    onClick={() => set(e.patientId, e.patientName, "refused")}
                     className={[
                       "shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
                       e.status === "refused"
